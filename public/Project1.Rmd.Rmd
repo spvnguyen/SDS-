@@ -1,0 +1,346 @@
+---
+title: 'Project 1: Exploratory Data Analysis'
+author: "SDS348 Fall 2019"
+date: "9/16/2019"
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Wrangling and Data Exploration
+
+### Instructions
+A knitted R Markdown document (as a PDF) and the raw R Markdown file (as .Rmd) should both be submitted to Canvas by 11:59pm on 10/20/2019. These two documents will be graded jointly, so they must be consistent (i.e., don’t change the R Markdown file without also updating the knitted document). Knit an html copy too, for later!
+
+I envision your written text forming something of a narrative structure around your code/output. All results presented must have corresponding code. Any answers/results/plots etc. given without the corresponding R code that generated the result will not be graded. Furthermore, all code contained in your final project document should work properly. Please do not include any extraneous code or code which produces error messages. (Code which produces warnings is acceptable, as long as you understand what the warnings mean).
+
+### Find data:
+
+Find two (!) datasets with one variable in common (e.g., dates, years, states, counties, countries), both with at least 50 observations (i.e., rows) in each. When combined, the resulting/final dataset must have **at least 4 different variables (at least 2 numeric) in addition to the common variable**.
+
+Choose as many as you would like! If you found two datasets that you like but they don't have enough variables,  find a third dataset with the same common variable and join all three.
+
+
+### Guidelines
+
+1. If the datasets are not tidy, you will need to reshape them so that every observation has its own row and every variable its own column. If the datasets are both already tidy, you will make them untidy with pivot_wider()/spread() and then tidy them again with pivot_longer/gather() to demonstrate your use of the functions. It's fine to wait until you have your descriptives to use these functions (e.g., you might want to pivot_wider() to rearrange the data to make your descriptive statistics easier to look at); it's fine long as you use them at least once!
+
+    - Depending on your datasets, it might be a good idea to do this before joining. For example, if you have a dataset you like with multiple measurements per year, but you want to join by year, you could average over your numeric variables to get means/year, do counts for your categoricals to get a counts/year, etc.
+    
+
+2. Join your 2+ separate data sources into a single dataset
+
+    - You will document the type of join that you do (left/right/inner/full), including how many cases in each dataset were dropped and why you chose this particular join
+
+
+3. Create summary statistics
+
+    - Use *all six* core `dplyr` functions (filter, select, arrange, group_by, mutate, summarize) to manipulate and explore your dataset. For mutate, create a  new variable that is a function of at least one other variable, preferably using a dplyr vector function (see dplyr cheatsheet). It's fine to use the `_if`, `_at`, `_all` versions of mutate/summarize instead (indeed, it is encouraged if you have lots of variables)
+    
+    - Create summary statistics (mean, sd, var, n, quantile, min, max, n_distinct, cor, etc) for each of your numeric variables overall and after grouping by one of your categorical variables (either together or one-at-a-time; if you have two categorical variables, try to include at least one statistic based on a grouping of two categorical variables simultaneously). If you do not have any categorical variables, create one using mutate to satisfy the requirements above. Ideally, you will find a way to show these summary statistics in an easy-to-read table (e.g., by reshaping). If you have lots of numeric variables, or your categorical variables have too many categories, just pick a few (either numeric variables or categories of a categorical variable) and summarize based on those. It would be a good idea to show a correlation matrix for your numeric variables!
+ 
+4. Make visualizations
+
+    - If you have 5 variables (the minimum), with 2 numeric variables (the minimum), create at least two effective plots with ggplot that illustrate some of the more interesting findings that your descriptive statistics have turned up.
+    - Each plot should have at least three variables mapped to separate aesthetics (if correlation heatmap, etc, fine to do the same "variable" on both axes)
+    - At least one plot should include `stat="summary"`
+    - Each plot should include a supporting paragraph describing the relationships that are being visualized and any notable trends that are apparent
+        - It is fine to include more, but limit yourself to 4. Plots should avoid being redundant! Four bad plots will get a lower grade than two good plots, all else being equal.
+    - If doing a 3D plot (not encouraged, but sometimes useful), it's fine to use plotly for one plot (make the other(s) in ggplot).
+    
+5. Perform k-means/PAM clustering or PCA on (at least) your numeric variables.
+
+    - Include all steps as we discuss in class, including a visualization.
+
+    - If you don't have at least 3 numeric variables, or you want to cluster based on categorical variables too, convert them to factors in R, generate Gower's dissimilarity matrix on the data, and do PAM clustering on the dissimilarities.
+    
+    - Show how you chose the final number of clusters/principal components 
+    
+    - Interpret the final clusters/principal components 
+
+    
+- For every step, you should document what your code does (in words) and what you see in the data.     
+    
+    
+### Rubric
+
+Prerequisite: Finding appropriate data from at least two sources per the instructions above: Failure to do this will result in a 0! You will submit a .Rmd file and a knitted document (pdf).
+
+#### 0. Introduction (4  pts)
+
+- Write a narrative introductory paragraph (or two) describing the datasets you have chosen, the variables they contain, how they were acquired, and why they are interesting to you. Expand on potential associations you may expect, if any.
+
+```{R}
+# The data I have chosen is about Alcohol Consuption per Capita in various countries and the number of births in the United States. The alcohol data contains country name, year, and estimated alcohol per capita consumption for adults over 15 in liters of alcohol. The Birth data contains the number of births dating from 1968 to 1988 including date, number of birthdays, year, month, day of year, day of month, and day of week, and which weekday it was. I chose this data set becuase I wondered if there was a correlation between alcohol and birth rates. These data sets were aquired through the websites :http://www.mechanicalkern.com/static/birthdates-1968-1988.csv and http://www.gapminder.org/data/. It interested me to learn about which countries have lower consuption rates of alcohol and which months had the highest birth rates. I thought increased birthrates would correlate with an increase alcohol consuption. 
+```
+#### 1. Tidying: Rearranging Wide/Long (8 pts)
+
+- Tidy the datasets (using the `tidyr` functions `pivot_longer`/`gather` and/or `pivot_wider`/`spread`) 
+- If you data sets are already tidy, untidy them, retidy them.
+- Document the process (describe in words what was done)
+```{R}
+# > Births <- read_csv("~/Births.csv")
+#> Alcohol <- read_csv("~/Alcohol.csv")
+#> Alcohol<-select(Alcohol, -c(1,2))
+#> Births<-select(Births, -c(1,6,7,8,9))
+
+#The alcohol data contained extra columns that were not labeled, so I removed those to tidy the data. I also tidyed the data by removing columns in the Birth dataset since the day of month, day or year, and day of week were redundant since the date column already included this data.
+```
+    
+#### 2. Joining/Merging (8 pts)
+
+- Join your datasets into one using a `dplyr` join function
+- If you have multiple observations on the joining variable in either dataset, fix this by collapsing via summarize
+- Discuss the process in words, including why you chose the join you did
+- Discuss which cases were dropped, if any, and potential problems with this
+```{R}
+# > install.packages("dplyr")
+#> library(dplyr)
+#> install.packages("tidyr")
+#> library(tidyr)
+#> inn<-inner_join(Births,Alcohol, by="year")
+#> nrow(inn)-nrow(Alcohol)-nrow(Births)
+#[1] -6255
+
+#An inner join was used to combine the datasts birth and alcohol by year. This took away 6255 cases, which was calculated by using nrow() and subtraction to see how many rows were lost. The only problem with the inner join is that some countries were dropped in the join. I chose this join so it would remove years that were not in common to prevent NAs.
+```
+
+#### 3. Wrangling (40 pts)
+
+- Use all six core `dplyr` functions in the service of generating summary statistics (18 pts)
+    - Use mutate to generate a variable that is a function of at least one other variable
+
+- Compute at least 10 different summary statistics using summarize and summarize with group_by (18 pts)
+    - At least 2 of these should group by a categorical variable. Create one by dichotomizing a numeric if necessary
+    - If applicable, at least 1 of these 5 should group by two categorical variables
+    - Strongly encouraged to create a correlation matrix with `cor()` on your numeric variables
+
+- Summarize/discuss all results in no more than two paragraphs (4 pts)
+
+```{R}
+# > max(dip$alcohol)
+#[1] 13.31
+#> min(dip$alcohol)
+#[1] 10.77
+#> sd(dip$alcohol)
+#[1] 1.00156
+#> max(dip$births)
+#[1] 12851
+#> min(dip$births)
+#[1] 7835
+#> sd(dip$births)
+#[1] 1182.512
+#> max(dip$year)
+#[1] 1988
+#> min(dip$year)
+#[1] 1985
+#> sd(dip$year)
+#[1] 1.118723
+#> n_distinct(dip$alcohol)
+#[1] 4
+#> n_distinct(dip$year)
+##[1] 4
+#> n_distinct(dip$births)
+##[1] 1191
+#> dip<-inn%>%group_by(country)%>%filter(country=="Russia")%>%select(date,wday,year,country,alcohol,births)%>%arrange(desc(births))%>%mutate(percent=100*births/1525273)
+#> head(dip)
+# A tibble: 6 x 7
+# Groups:   country [1]
+ # date  wday   year country alcohol births
+#  <chr> <chr> <dbl> <chr>     <dbl>  <dbl>
+#1 9/20~ Tue    1988 Russia     11.6  12851
+#2 7/7/~ Thu    1988 Russia     11.6  12727
+#3 9/23~ Fri    1988 Russia     11.6  12694
+#4 9/9/~ Fri    1988 Russia     11.6  12661
+#5 9/16~ Fri    1988 Russia     11.6  12620
+#6 9/22~ Thu    1988 Russia     11.6  12554
+# ... with 1 more variable: percent <dbl>
+#> dip%>%group_by(year)%>%summarise(max(births))
+# A tibble: 4 x 2
+ #  year `max(births)`
+#  <dbl>         <dbl>
+#1  1985         12396
+#2  1986         12412
+#3  1987         12351
+#4  1988         12851
+#> dip%>%group_by(wday)%>%summarise(mean(births))
+# A tibble: 7 x 2
+ # wday  `mean(births)`
+#  <chr>          <dbl>
+#1 Fri           11148.
+#2 Mon           10836.
+#3 Sat            9054.
+#4 Sun            8626.
+#5 Thu           10999.
+#6 Tue           11362.
+#7 Wed           11047.
+#>  dip%>%group_by(wday)%>%summarise(sd(births))
+# A tibble: 7 x 2
+#  wday  `sd(births)`
+#  <chr>        <dbl>
+#1 Fri           670.
+#2 Mon           635.
+#3 Sat           399.
+#4 Sun           363.
+#5 Thu           752.
+#6 Tue           557.
+#7 Wed           613.
+#> dip%>%group_by(year)%>%summarise(max(alcohol))
+# A tibble: 4 x 2
+#   year `max(alcohol)`
+#  <dbl>          <dbl>
+#1  1985           13.3
+#2  1986           10.8
+#3  1987           11.0
+#4  1988           11.6
+#> dip%>%group_by(year)%>%summarise(min(alcohol))
+# A tibble: 4 x 2
+#   year `min(alcohol)`
+#  <dbl>          <dbl>
+#1  1985           13.3
+##2  1986           10.8
+#3  1987           11.0
+#4  1988           11.6
+#> dip%>%group_by(year)%>%summarise(mean(alcohol))
+# A tibble: 4 x 2
+#   year `mean(alcohol)`
+#  <dbl>           <dbl>
+#1  1985            13.3
+#2  1986            10.8
+#3  1987            11.0
+#4  1988            11.6
+#> dip%>%group_by(year)%>%summarise(sd(alcohol))
+# A tibble: 4 x 2
+#   year `sd(alcohol)`
+#  <dbl>         <dbl>
+#1  1985             0
+#2  1986             0
+#3  1987             0
+#4  1988             0
+#> dip%>%group_by(dip$country)%>%group_by(wday)%>%summarise(max(alcohol))
+# A tibble: 7 x 2
+ # wday  `max(alcohol)`
+#  <chr>          <dbl>
+#1 Fri             13.3
+#2 Mon             13.3
+#3 Sat             13.3
+#4 Sun             13.3
+#5 Thu             13.3
+#6 Tue             13.3
+#7 Wed             13.3
+#> cor(dip$births,dip$alcohol)
+#[1] -0.02365281
+#The highest liters of alcohol consumed #per capita in Russia is 13.31L while the minimum is 10.77L. The stadard deviation of alcohol consumption per capita is 1.00156. For births, the maximum is 12851.The most births were in 1988, and on average Tuesdays had the m ost births. Thursdays had the largest standard deviation for births. In 1985 there was the highest alcohol consumption per capita at 13.3L.
+```
+
+
+#### 4. Visualizing (30 pts)
+
+- Create two effective, polished plots with ggplot
+
+    - Each plot should map 3+ variables to aesthetics 
+    - Each plot should have a title and clean labeling for all mappings
+    - Change at least one default theme element and color for at least one mapping per plot
+    - For at least one plot, add more tick marks (x, y, or both) than are given by default
+    - For at least one plot, use the stat="summary" function
+    - Supporting paragraph or two (for each plot) describing the relationships/trends that are apparent
+    ```{R}
+# > install.packages("tidyverse")
+#> library(tidyverse)
+#> ggplot(data = dip, aes(x= year, y=births, color=alcohol))+geom_point(size=.5)+ggtitle("Birthrates and Alcohol Consumption by Year")+ylab("Births")+xlab("Year")+ theme_classic()+theme(axis.text.x = element_text(color = "blue"),axis.text.y = element_text(color = "blue"))
+    
+#>  ggplot(data = dip, aes(x= alcohol, y=births, color=year))+geom_point(size=.5)+ggtitle("Birthrates and Alcohol Consumption by Year")+ylab("Births")+xlab("Alcohol")+theme_minimal()+scale_y_continuous(breaks = c(8000,8500,9000,9500,10000,11000,11500,12000))+theme(axis.text.x = element_text(color = "blue"),axis.text.y = element_text(color = "blue"))
+ #   > ggplot(data = dip, aes(x= alcohol, y=births, color=year))+geom_point(size=.5)+stat_summary(geom = "point", fun.y = "mean", colour = "red")+ggtitle("Birthrates and Alcohol Consumption by Year")+ylab("Births")+xlab("Alcohol")+theme_minimal()+scale_y_continuous(breaks = c(8000,8500,9000,9500,10000,11000,11500,12000))+theme(axis.text.x = element_text(color = "blue"),axis.text.y = element_text(color = "blue"))
+  #The graphs indicate that 1985 had the highest alcohol consumption and less in the following year. The graphs also indicate that there are more births as the years increase. The stat summary function indicates that the means are between 10000  and 11000 births.
+```
+    
+#### 5. Dimensionality Reduction (20 pts) 
+
+- Either k-means/PAM clustering or PCA (inclusive "or") should be performed on at least three numeric variables in your dataset
+
+    - All relevant steps discussed in class should be included/rca1eported
+    - A visualization of the clusters or the first few principal components (using ggplot2)
+    - Supporting paragraph or two describing results found 
+  
+```{R}
+# > install.packages("devtools")
+#> library(devtools)
+#> library(cluster)
+#clust<-dip%>%select_if(is.numeric)%>%scale
+#pca1<-princomp(clust)
+
+#summary(pca1, loadings=T)
+#evi<-pca1$sdev^2
+#varprop=round(evi/sumevi),2)
+#evi%>%ggplot(aes(births, acohol, year, color=cluster))+geom_point()
+
+#Birth rates and alcohol consumption do not have large positive associations. Unlike what was predicted.
+```
+
+### Where do I find data?
+
+OK, brace yourself!
+
+You can choose ANY datasets you want that meet the above criteria for variables and observations. I'm just sitting here but off the top of my head, if you are into amusement parks, you could look at amusement-park variables, including visits, and how they are impacted by weather. If you are interested in Game of Thrones, you could look at how the frequency of mentions of character names (plus other character variables) and the frequency of baby names in the US...You could even take your old Biostats data and merge in new data (e.g., based on a Google forms timestamp).
+
+You can make it as serious as you want, or not, but keep in mind that you will be incorporating this project into a portfolio webpage for your final in this course, so choose something that really reflects who you are, or something that you feel will advance you in the direction you hope to move career-wise, or something that you think is really neat. On the flip side, regardless of what you pick, you will be performing all the same tasks, so it doesn't end up being that big of a deal.
+
+If you are totally clueless and have no direction at all, log into the server and type 
+
+```{R eval=F}
+data(package = .packages(all.available = TRUE))
+```
+
+This will print out a list of **ALL datasets in ALL packages** installed on the server (a ton)! Scroll until your eyes bleed! Actually, do not scroll that much... To start with something more manageable, just run the command on your own computer, or just run `data()` to bring up the datasets in your current environment. To read more about a dataset, do `?packagename::datasetname`. 
+
+If it is easier for you, and in case you don't have many packages installed, a list of R datasets from a few common packages (also downloadable in CSV format) is given at the following website: https://vincentarelbundock.github.io/Rdatasets/datasets.html
+
+- A good package to download for fun/relevant data is `fivethiryeight`. Just run `install.packages("fivethirtyeight"), load the packages with `library(fivethirtyeight)`, run `data()`, and then scroll down to view the datasets. Here is an online list of all 127 datasets (with links to the 538 articles). Lots of sports, politics, current events, etc.
+
+- If you have already started to specialize (e.g., ecology, epidemiology) you might look at discipline-specific R packages (vegan, epi, respectively). We will be using some tools from these packages later in the course, but they come with lots of data too, which you can explore according to the directions above
+
+- However, you *emphatically DO NOT* have to use datasets available via R packages! In fact, I would much prefer it if you found the data from completely separate sources and brought them together (a much more realistic experience in the real world)! You can even reuse data from your SDS328M project, provided it shares a variable in common with other data which allows you to  merge the two together (e.g., if you still had the timestamp, you could look up the weather that day: https://www.wunderground.com/history/). If you work in a research lab or have access to old data, you could potentially merge it with new data from your lab!
+
+- Here is a curated list of interesting datasets (read-only spreadsheet format): https://docs.google.com/spreadsheets/d/1wZhPLMCHKJvwOkP4juclhjFgqIY8fQFMemwKL2c64vk/edit
+
+- Here is another great compilation of datasets: https://github.com/rfordatascience/tidytuesday
+
+- Here is the UCI Machine Learning Repository: https://archive.ics.uci.edu/ml/index.php
+
+    - See also https://en.wikipedia.org/wiki/List_of_datasets_for_machine-learning_research#Biological_data
+
+- Here is another good general place to look: https://www.kaggle.com/datasets
+
+- To help narrow your search down or to see interesting variable ideas, check out https://www.tylervigen.com/spurious-correlations. This is the spurious correlations website, and it is fun, but if you look at the bottom of each plot you will see sources for the data. This is a good place to find very general data (or at least get a sense of where you can scrape data together from)!
+
+- If you are interested in medical data, check out www.countyhealthrankings.org
+
+- If you are interested in scraping UT data, they make *loads* of data public (e.g., beyond just professor CVs and syllabi). Check out all the data that is available in the statistical handbooks: https://reports.utexas.edu/statistical-handbook
+
+##### Broader data sources:
+
+[Data.gov](www.data.gov) 186,000+ datasets!
+
+[Social Explorer](Social Explorer) is a nice interface to Census and American Community Survey data (more user-friendly than the government sites). May need to sign up for a free trial.
+
+[U.S. Bureau of Labor Statistics](www.bls.gov)
+
+[U.S. Census Bureau](www.census.gov)
+
+[Gapminder](www.gapminder.org/data), data about the world.
+
+...
+
+
+
+
+

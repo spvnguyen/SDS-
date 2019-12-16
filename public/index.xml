@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Sarah Nguyen</title>
+    <link>/</link>
+    <description>Recent content on Sarah Nguyen</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 15 Dec 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Python</title>
+      <link>/blog/python/</link>
+      <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/python/</guid>
+      <description>STATS is so fun! I never thought I would learn so much.We started using python.
+my_seq1 = “ATCATCATG”my_seq2 = “CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT”my_dict = {1: ‘ATC’, 2: ‘TCA’, 3:‘CAT’, 4:‘ATG’}print(my_dict)def count_kmers(seq,k):count = {}num= len(seq)-k+1for i in range(num):kmer=seq[i:i+k]if kmer not in count:count[kmer] +=1return count
+count_kmers(“CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT”)count_kmers(“ATCATCATG”)
+This code helps is find sequences.</description>
+    </item>
+    
+    <item>
+      <title>Statistics</title>
+      <link>/2019/12/15/statistics/</link>
+      <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/2019/12/15/statistics/</guid>
+      <description>STATS is so fun! I never thought I would learn so much.We started using python.
+my_seq1 = “ATCATCATG”my_seq2 = “CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT”my_dict = {1: ‘ATC’, 2: ‘TCA’, 3:‘CAT’, 4:‘ATG’}print(my_dict)def count_kmers(seq,k):count = {}num= len(seq)-k+1for i in range(num):kmer=seq[i:i+k]if kmer not in count:count[kmer] +=1return count
+count_kmers(“CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT”)count_kmers(“ATCATCATG”)
+This code helps is find sequences.</description>
+    </item>
+    
+    <item>
+      <title>STATS</title>
+      <link>/blog/stats/</link>
+      <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/stats/</guid>
+      <description>I have learned so much from SDS 348!</description>
+    </item>
+    
+    <item>
+      <title>STATS</title>
+      <link>/2019/12/15/stats/</link>
+      <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/2019/12/15/stats/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Projects</title>
+      <link>/projects/</link>
+      <pubDate>Sun, 02 Oct 2016 22:55:05 -0400</pubDate>
+      
+      <guid>/projects/</guid>
+      <description>Projects Here are some projects I have been working on:
+  Project 1
+  Project 2
+  </description>
+    </item>
+    
+    <item>
+      <title>Project 1: Exploratory Data Analysis</title>
+      <link>/project1.rmd/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project1.rmd/</guid>
+      <description>Data Wrangling and Data ExplorationInstructionsA knitted R Markdown document (as a PDF) and the raw R Markdown file (as .Rmd) should both be submitted to Canvas by 11:59pm on 10/20/2019. These two documents will be graded jointly, so they must be consistent (i.e., don’t change the R Markdown file without also updating the knitted document). Knit an html copy too, for later!
+I envision your written text forming something of a narrative structure around your code/output.</description>
+    </item>
+    
+    <item>
+      <title>Project 2 Modeling, Testing, and Predicting</title>
+      <link>/project2.rmd/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project2.rmd/</guid>
+      <description>Intro#The ramen data taken from the Ramen Rating website and consists of ramen reviews on a scale from 0-5. The top ten indicates if it ever ranked top 10 in a pervious year with the number 1, while 0 indicates it was not rated top 10 before. Stars indicates the ratings from 0-5, country indicates where the ramen was made, style indicates how it was packaged, variety indicates flavor name and brand is the brand name.</description>
+    </item>
+    
+  </channel>
+</rss>
