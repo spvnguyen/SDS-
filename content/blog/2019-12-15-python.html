@@ -1,0 +1,28 @@
+---
+title: Python
+author: Sarah Nguyen
+date: '2019-12-15'
+slug: python
+categories: []
+tags: []
+description: ''
+---
+
+
+
+<p>STATS is so fun! I never thought I would learn so much.We started using python.</p>
+<p>my_seq1 = “ATCATCATG”
+my_seq2 = “CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT”
+my_dict = {1: ‘ATC’, 2: ‘TCA’, 3:‘CAT’, 4:‘ATG’}
+print(my_dict)
+def count_kmers(seq,k):
+count = {}
+num= len(seq)-k+1
+for i in range(num):
+kmer=seq[i:i+k]
+if kmer not in count:
+count[kmer] +=1
+return count</p>
+<p>count_kmers(“CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT”)
+count_kmers(“ATCATCATG”)</p>
+<p>This code helps is find sequences.</p>

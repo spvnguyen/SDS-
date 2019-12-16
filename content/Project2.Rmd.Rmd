@@ -1,0 +1,200 @@
+---
+title: 'Project 2 Modeling, Testing, and Predicting'
+author: "SDS348 Fall 2019"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+```
+
+
+
+
+**Intro**
+#The ramen data taken from the Ramen Rating website and consists of ramen reviews on a scale from 0-5. The top ten indicates if it ever ranked top 10 in a pervious year with the number 1, while 0 indicates it was not rated top 10 before. Stars indicates the ratings from 0-5, country indicates where the ramen was made, style indicates how it was packaged, variety indicates flavor name and brand is the brand name.
+
+- **1. (15 pts)** 
+```{r}
+ramen3 <- read_csv("C:/Users/sarah/Downloads/ramen3.csv")
+ramen3[is.na(ramen3)] <- 0
+ramen<-trunc(ramen3$Stars)
+ramen3$Stars<-ramen
+man<-manova(cbind(ramen3$`Top Ten`,Stars)~Style, data=ramen3)
+summary(man)
+ramen3%>%group_by(`Top Ten`)%>%summarise(mean(Stars))
+summary.aov(man)
+pairwise.t.test(ramen3$`Top Ten`, ramen3$Stars, p.adj = "none")
+1-.95^3
+.05/3
+
+#The number to test performed was 3 consisting of the MANOVA, ANOVA and post-hoc test.This would result in a Type I error of .143. This would result in an alpha of 0.017. This resulted in no change of significance. All tests are still significant. The assumptions are likely to have been met except for random sample. This website is for ramen enthusiasts which would indicate the people writting the reviews are very interestd in ramen and might review it as having higher ratings.
+
+```
+
+- **2. (10 pts)** 
+```{r} 
+obs_F<-3.3472
+
+Fs<-replicate(5000,{
+ new<-ramen3%>%mutate(Stars=sample(Stars))
+ SSW<- new%>%group_by('Top Ten')%>%summarize(SSW=sum((Stars-mean(Stars))^2))%>%summarize(sum(SSW))%>%pull
+ SSB<- new%>%mutate(mean=mean(Stars))%>%group_by('Top Ten')%>%mutate(groupmean=mean(Stars))%>%
+ summarize(SSB=sum((mean-groupmean)^2))%>%summarize(sum(SSB))%>%pull
+ (SSB/7)/(SSW/2569)
+})
+
+hist(Fs, prob=T); abline(v = obs_F, col="red",add=T)
+
+# H0:For each response variable, the means of the groups are equal
+#H For at least one response variable, at least one group mean differs
+
+```
+
+- **3. (35 pts)**
+    
+```{r}
+cor(ramen3$`Review #`, ramen3$Stars)
+x<-scale(ramen3$`Review #`)
+y<-scale(ramen3$Stars)
+sum(x*y)/sum(x^2)
+fit1<-lm( ramen3$Stars~ramen3$`Review #`)
+coef(fit1)
+cov(ramen3$`Top Ten`,ramen3$Stars)/var(ramen3$`Review #`)
+
+library(ggplot2)
+library(dplyr)
+ramen3%>%ggplot(aes(Stars,`Review #`))+geom_point()+geom_smooth(method = 'lm',se=F)
+ramen3%>%ggplot(aes(Stars,'Top Ten'))+geom_point()+geom_smooth(method = 'lm',se=F)
+# The coefficient estimantes are both .282.
+
+resids<-fit1$residuals
+fitvals<-fit1$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color='red')
+ggplot()+geom_histogram(aes(resids), bins=20)
+ggplot()+geom_qq(aes(sample=resids))+geom_qq_line()
+
+library(lmtest)
+library(sandwich)
+ coeftest(fit1, vcov = vcovHC(fit1))[,1:2]
+
+#Assuptions are not met for normality because it is a little skew. Homoskedasticity is not met and linearity is not met.
+ 
+  bptest(fit1)
+  #The results are still significant.
+  
+SST <- sum((ramen3$Stars-mean(ramen3$Stars))^2) 
+SSR <- sum((fit1$fitted.values-mean(ramen3$Stars))^2)
+SSR/SST
+
+#The model explains 0.0797 of variation in the outcome.
+
+anova(fit1)
+lrtest(fit1)
+```
+
+- **4. (5 pts)** 
+```{r}
+samp_distn<-replicate(5000, {
+    boot_dat<-ramen3[sample(nrow(ramen3),replace=TRUE),]
+    
+    coef(fit1)
+})
+#The pvalues are very close to the original SES.
+```
+
+- **5. (40 pts)** 
+    ```{r}
+cor(ramen3$`Top Ten`, ramen3$Stars)
+library(dplyr)
+fit<-glm(ramen3$`Top Ten`~ramen3$Stars)
+summary(fit)
+ramen3$prob<-predict(fit,type="response")
+ramen3<-ramen3%>%mutate(prob=predict(fit, type="response"), prediction=ifelse(prob>.5,1,0))
+classify<-ramen3%>%transmute(prob,prediction,truth=y)
+table(predict=as.numeric(ramen3$prob>.5),truth=ramen3$`Top Ten`)%>%addmargins
+TNR= 2540/2577
+TPR=37/2577
+PPv=37/37
+data<-ramen3
+sens<-function(p,data=data, y=y) mean(data[data$y==1,]$prob>p)
+spec<-function(p,data=data, y=y) mean(data[data$y==0,]$prob<p)
+sensitivity<-sapply(seq(0,1,.01),sens,data)
+specificity<-sapply(seq(0,1,.01),spec,data)
+ROC1<-data.frame(sensitivity,specificity,cutoff=seq(0,1,.01))
+ROC1$TPR<-sensitivity
+ROC1$FPR<-1-specificity
+
+ROC1%>%ggplot(aes(FPR,TPR))+geom_path(size=1.5)+geom_segment(aes(x=0,y=0,xend=1,yend=1),lty=2)+
+ scale_x_continuous(limits = c(0,1))
+#calc_auc(ROCplot)
+
+
+```
+
+- **6. (10 pts)** 
+```{r}
+library(glmnet)
+y<-as.matrix(ramen3$'Top Ten')
+x<-ramen3%>%dplyr::select(Stars,'Review #')%>%mutate_all(scale)%>%as.matrix
+cv<-cv.glmnet(x,y)
+lasso1<-glmnet(x,y,lambda=cv$lambda.1se)
+coef(lasso1)
+class_diag<-function(probs,truth){
+ tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+ acc=sum(diag(tab))/sum(tab)
+ sens=tab[2,2]/colSums(tab)[2]
+ spec=tab[1,1]/colSums(tab)[1]
+ ppv=tab[2,2]/rowSums(tab)[2]
+ if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+
+ ord<-order(probs, decreasing=TRUE)
+ probs <- probs[ord]; truth <- truth[ord]
+ TPR=cumsum(truth)/max(1,sum(truth))
+ FPR=cumsum(!truth)/max(1,sum(!truth))
+ dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+ TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+ n <- length(TPR)
+ auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+ data.frame(acc,sens,spec,ppv,auc)
+}
+```
+
+
+
+
+
+```{R eval=F}
+data(package = .packages(all.available = TRUE))
+```
+
+
+...
+
+
+
+
+

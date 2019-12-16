@@ -1,0 +1,262 @@
+---
+title: 'Project 2 Modeling, Testing, and Predicting'
+author: "SDS348 Fall 2019"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+---
+
+
+
+<p><strong>Intro</strong>
+#The ramen data taken from the Ramen Rating website and consists of ramen reviews on a scale from 0-5. The top ten indicates if it ever ranked top 10 in a pervious year with the number 1, while 0 indicates it was not rated top 10 before. Stars indicates the ratings from 0-5, country indicates where the ramen was made, style indicates how it was packaged, variety indicates flavor name and brand is the brand name.</p>
+<ul>
+<li><strong>1. (15 pts)</strong></li>
+</ul>
+<pre class="r"><code>ramen3 &lt;- read_csv(&quot;C:/Users/sarah/Downloads/ramen3.csv&quot;)
+ramen3[is.na(ramen3)] &lt;- 0
+ramen&lt;-trunc(ramen3$Stars)
+ramen3$Stars&lt;-ramen
+man&lt;-manova(cbind(ramen3$`Top Ten`,Stars)~Style, data=ramen3)
+summary(man)</code></pre>
+<pre><code>## Df Pillai approx F num Df den Df Pr(&gt;F)
+## Style 7 0.015323 2.8335 14 5138 0.0002983 ***
+## Residuals 2569
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>ramen3%&gt;%group_by(`Top Ten`)%&gt;%summarise(mean(Stars))</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   `Top Ten` `mean(Stars)`
+##       &lt;dbl&gt;         &lt;dbl&gt;
+## 1         0          3.33
+## 2         1          4.86</code></pre>
+<pre class="r"><code>summary.aov(man)</code></pre>
+<pre><code>## Response 1 :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## Style 7 0.330 0.047087 3.3472 0.001483 **
+## Residuals 2569 36.139 0.014067
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response Stars :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## Style 7 21.66 3.0947 2.5642 0.01241 *
+## Residuals 2569 3100.50 1.2069
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>pairwise.t.test(ramen3$`Top Ten`, ramen3$Stars, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  ramen3$`Top Ten` and ramen3$Stars 
+## 
+##   0       1       2       3       4      
+## 1 1.00    -       -       -       -      
+## 2 1.00    1.00    -       -       -      
+## 3 1.00    1.00    1.00    -       -      
+## 4 0.68    0.58    0.42    0.22    -      
+## 5 8.4e-07 1.2e-10 &lt; 2e-16 &lt; 2e-16 &lt; 2e-16
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>1-.95^3</code></pre>
+<pre><code>## [1] 0.142625</code></pre>
+<pre class="r"><code>.05/3</code></pre>
+<pre><code>## [1] 0.01666667</code></pre>
+<pre class="r"><code>#The number to test performed was 3 consisting of the MANOVA, ANOVA and post-hoc test.This would result in a Type I error of .143. This would result in an alpha of 0.017. This resulted in no change of significance. All tests are still significant. The assumptions are likely to have been met except for random sample. This website is for ramen enthusiasts which would indicate the people writting the reviews are very interestd in ramen and might review it as having higher ratings.</code></pre>
+<ul>
+<li><strong>2. (10 pts)</strong></li>
+</ul>
+<pre class="r"><code>obs_F&lt;-3.3472
+
+Fs&lt;-replicate(5000,{
+ new&lt;-ramen3%&gt;%mutate(Stars=sample(Stars))
+ SSW&lt;- new%&gt;%group_by(&#39;Top Ten&#39;)%&gt;%summarize(SSW=sum((Stars-mean(Stars))^2))%&gt;%summarize(sum(SSW))%&gt;%pull
+ SSB&lt;- new%&gt;%mutate(mean=mean(Stars))%&gt;%group_by(&#39;Top Ten&#39;)%&gt;%mutate(groupmean=mean(Stars))%&gt;%
+ summarize(SSB=sum((mean-groupmean)^2))%&gt;%summarize(sum(SSB))%&gt;%pull
+ (SSB/7)/(SSW/2569)
+})
+
+hist(Fs, prob=T); abline(v = obs_F, col=&quot;red&quot;,add=T)</code></pre>
+<p><img src="/Project2.Rmd_files/figure-html/unnamed-chunk-2-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># H0:For each response variable, the means of the groups are equal
+#H For at least one response variable, at least one group mean differs</code></pre>
+<ul>
+<li><strong>3. (35 pts)</strong></li>
+</ul>
+<pre class="r"><code>cor(ramen3$`Review #`, ramen3$Stars)</code></pre>
+<pre><code>## [1] 0.2822248</code></pre>
+<pre class="r"><code>x&lt;-scale(ramen3$`Review #`)
+y&lt;-scale(ramen3$Stars)
+sum(x*y)/sum(x^2)</code></pre>
+<pre><code>## [1] 0.2822248</code></pre>
+<pre class="r"><code>fit1&lt;-lm( ramen3$Stars~ramen3$`Review #`)
+coef(fit1)</code></pre>
+<pre><code>##       (Intercept) ramen3$`Review #` 
+##      2.8092222115      0.0004172968</code></pre>
+<pre class="r"><code>cov(ramen3$`Top Ten`,ramen3$Stars)/var(ramen3$`Review #`)</code></pre>
+<pre><code>## [1] 3.931808e-08</code></pre>
+<pre class="r"><code>library(ggplot2)
+library(dplyr)
+ramen3%&gt;%ggplot(aes(Stars,`Review #`))+geom_point()+geom_smooth(method = &#39;lm&#39;,se=F)</code></pre>
+<p><img src="/Project2.Rmd_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ramen3%&gt;%ggplot(aes(Stars,&#39;Top Ten&#39;))+geom_point()+geom_smooth(method = &#39;lm&#39;,se=F)</code></pre>
+<p><img src="/Project2.Rmd_files/figure-html/unnamed-chunk-3-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># The coefficient estimantes are both .282.
+
+resids&lt;-fit1$residuals
+fitvals&lt;-fit1$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color=&#39;red&#39;)</code></pre>
+<p><img src="/Project2.Rmd_files/figure-html/unnamed-chunk-3-3.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot()+geom_histogram(aes(resids), bins=20)</code></pre>
+<p><img src="/Project2.Rmd_files/figure-html/unnamed-chunk-3-4.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot()+geom_qq(aes(sample=resids))+geom_qq_line()</code></pre>
+<p><img src="/Project2.Rmd_files/figure-html/unnamed-chunk-3-5.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>library(lmtest)
+library(sandwich)
+ coeftest(fit1, vcov = vcovHC(fit1))[,1:2]</code></pre>
+<pre><code>##                       Estimate   Std. Error
+## (Intercept)       2.8092222115 4.119831e-02
+## ramen3$`Review #` 0.0004172968 2.888754e-05</code></pre>
+<pre class="r"><code>#Assuptions are not met for normality because it is a little skew. Homoskedasticity is not met and linearity is not met.
+ 
+  bptest(fit1)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  fit1
+## BP = 5.5493, df = 1, p-value = 0.01849</code></pre>
+<pre class="r"><code>  #The results are still significant.
+  
+SST &lt;- sum((ramen3$Stars-mean(ramen3$Stars))^2) 
+SSR &lt;- sum((fit1$fitted.values-mean(ramen3$Stars))^2)
+SSR/SST</code></pre>
+<pre><code>## [1] 0.07965082</code></pre>
+<pre class="r"><code>#The model explains 0.0797 of variation in the outcome.
+
+anova(fit1)</code></pre>
+<pre><code>## Analysis of Variance Table
+##
+## Response: ramen3$Stars
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## ramen3$`Review #` 1 248.68 248.683 222.85 &lt; 2.2e-16 ***
+## Residuals 2575 2873.48 1.116
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>lrtest(fit1)</code></pre>
+<pre><code>## Likelihood ratio test
+##
+## Model 1: ramen3$Stars ~ ramen3$`Review #`
+## Model 2: ramen3$Stars ~ 1
+## #Df LogLik Df Chisq Pr(&gt;Chisq)
+## 1 3 -3796.9
+## 2 2 -3903.9 -1 213.9 &lt; 2.2e-16 ***
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<ul>
+<li><strong>4. (5 pts)</strong></li>
+</ul>
+<pre class="r"><code>samp_distn&lt;-replicate(5000, {
+    boot_dat&lt;-ramen3[sample(nrow(ramen3),replace=TRUE),]
+    
+    coef(fit1)
+})
+#The pvalues are very close to the original SES.</code></pre>
+<ul>
+<li><p><strong>5. (40 pts)</strong></p>
+<pre class="r"><code>cor(ramen3$`Top Ten`, ramen3$Stars)</code></pre>
+<pre><code>## [1] 0.1664025</code></pre>
+<pre class="r"><code>library(dplyr)
+fit&lt;-glm(ramen3$`Top Ten`~ramen3$Stars)
+summary(fit)</code></pre>
+<pre><code>##
+## Call:
+## glm(formula = ramen3$`Top Ten` ~ ramen3$Stars)
+##
+## Deviance Residuals:
+## Min 1Q Median 3Q Max
+## -0.04408 -0.02610 -0.00811 -0.00811 0.97390
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) -0.04584 0.00740 -6.195 6.78e-10 ***
+## ramen3$Stars 0.01798 0.00210 8.563 &lt; 2e-16 ***
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## (Dispersion parameter for gaussian family taken to be
+0.01377047)
+##
+## Null deviance: 36.469 on 2576 degrees of freedom
+## Residual deviance: 35.459 on 2575 degrees of freedom
+## AIC: -3725.8
+##
+## Number of Fisher Scoring iterations: 2</code></pre>
+<pre class="r"><code>ramen3$prob&lt;-predict(fit,type=&quot;response&quot;)
+ramen3&lt;-ramen3%&gt;%mutate(prob=predict(fit, type=&quot;response&quot;), prediction=ifelse(prob&gt;.5,1,0))
+classify&lt;-ramen3%&gt;%transmute(prob,prediction,truth=y)
+table(predict=as.numeric(ramen3$prob&gt;.5),truth=ramen3$`Top Ten`)%&gt;%addmargins</code></pre>
+<pre><code>##        truth
+## predict    0    1  Sum
+##     0   2540   37 2577
+##     Sum 2540   37 2577</code></pre>
+<pre class="r"><code>TNR= 2540/2577
+TPR=37/2577
+PPv=37/37
+data&lt;-ramen3
+sens&lt;-function(p,data=data, y=y) mean(data[data$y==1,]$prob&gt;p)
+spec&lt;-function(p,data=data, y=y) mean(data[data$y==0,]$prob&lt;p)
+sensitivity&lt;-sapply(seq(0,1,.01),sens,data)
+specificity&lt;-sapply(seq(0,1,.01),spec,data)
+ROC1&lt;-data.frame(sensitivity,specificity,cutoff=seq(0,1,.01))
+ROC1$TPR&lt;-sensitivity
+ROC1$FPR&lt;-1-specificity
+
+ROC1%&gt;%ggplot(aes(FPR,TPR))+geom_path(size=1.5)+geom_segment(aes(x=0,y=0,xend=1,yend=1),lty=2)+
+ scale_x_continuous(limits = c(0,1))</code></pre>
+<p><img src="/Project2.Rmd_files/figure-html/unnamed-chunk-5-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#calc_auc(ROCplot)</code></pre></li>
+<li><p><strong>6. (10 pts)</strong></p></li>
+</ul>
+<pre class="r"><code>library(glmnet)
+y&lt;-as.matrix(ramen3$&#39;Top Ten&#39;)
+x&lt;-ramen3%&gt;%dplyr::select(Stars,&#39;Review #&#39;)%&gt;%mutate_all(scale)%&gt;%as.matrix
+cv&lt;-cv.glmnet(x,y)
+lasso1&lt;-glmnet(x,y,lambda=cv$lambda.1se)
+coef(lasso1)</code></pre>
+<pre><code>## 3 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                       s0
+## (Intercept) 1.435778e-02
+## Stars       1.320985e-17
+## Review #    .</code></pre>
+<pre class="r"><code>class_diag&lt;-function(probs,truth){
+ tab&lt;-table(factor(probs&gt;.5,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),truth)
+ acc=sum(diag(tab))/sum(tab)
+ sens=tab[2,2]/colSums(tab)[2]
+ spec=tab[1,1]/colSums(tab)[1]
+ ppv=tab[2,2]/rowSums(tab)[2]
+ if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+
+ ord&lt;-order(probs, decreasing=TRUE)
+ probs &lt;- probs[ord]; truth &lt;- truth[ord]
+ TPR=cumsum(truth)/max(1,sum(truth))
+ FPR=cumsum(!truth)/max(1,sum(!truth))
+ dup&lt;-c(probs[-1]&gt;=probs[-length(probs)], FALSE)
+ TPR&lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+ n &lt;- length(TPR)
+ auc&lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+ data.frame(acc,sens,spec,ppv,auc)
+}</code></pre>
+<pre class="r"><code>data(package = .packages(all.available = TRUE))</code></pre>
+<p>…</p>
