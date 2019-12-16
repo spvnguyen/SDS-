@@ -1,0 +1,10 @@
+---
+title: STATS
+author: Sarah Nguyen
+date: '2019-12-15'
+slug: stats
+categories: []
+tags: []
+description: ''
+---
+I have learned so much from SDS 348!
